@@ -39,6 +39,11 @@ impl Registers {
   fn hl(&mut self) -> u16 {
     (self.h as u16) << 8 | (self.l as u16)
   }
+
+  fn set_af(&mut self, value: u16) {
+    self.a = ((value & 0xFF00) >> 8) as u8;
+    self.f = (value & 0x00F0) as u8;
+  }
 }
 
 #[cfg(test)]
@@ -93,5 +98,15 @@ mod tests {
     r.l = 0xCF;
 
     assert_eq!(r.hl(), 0xABCF, "Get HL");
+  }
+
+  #[test]
+  fn set_af() {
+    let mut r = Registers::new();
+
+    r.set_af(0xABCD);
+
+    assert_eq!(r.a, 0xAB, "Set A");
+    assert_eq!(r.f, 0xC0, "Set F, last 4 bits are zeroed");
   }
 }
