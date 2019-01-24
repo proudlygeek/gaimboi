@@ -44,6 +44,21 @@ impl Registers {
     self.a = ((value & 0xFF00) >> 8) as u8;
     self.f = (value & 0x00F0) as u8;
   }
+
+  fn set_bc(&mut self, value: u16) {
+    self.b = ((value & 0xFF00) >> 8) as u8;
+    self.c = (value & 0x00FF) as u8;
+  }
+
+  fn set_de(&mut self, value: u16) {
+    self.d = ((value & 0xFF00) >> 8) as u8;
+    self.e = (value & 0x00FF) as u8;
+  }
+
+  fn set_hl(&mut self, value: u16) {
+    self.h = ((value & 0xFF00) >> 8) as u8;
+    self.l = (value & 0x00FF) as u8;
+  }
 }
 
 #[cfg(test)]
@@ -108,5 +123,35 @@ mod tests {
 
     assert_eq!(r.a, 0xAB, "Set A");
     assert_eq!(r.f, 0xC0, "Set F, last 4 bits are zeroed");
+  }
+
+  #[test]
+  fn set_bc() {
+    let mut r = Registers::new();
+
+    r.set_bc(0xABCD);
+
+    assert_eq!(r.b, 0xAB, "Set B");
+    assert_eq!(r.c, 0xCD, "Set C");
+  }
+
+  #[test]
+  fn set_de() {
+    let mut r = Registers::new();
+
+    r.set_de(0xABCD);
+
+    assert_eq!(r.d, 0xAB, "Set D");
+    assert_eq!(r.e, 0xCD, "Set E");
+  }
+
+  #[test]
+  fn set_hl() {
+    let mut r = Registers::new();
+
+    r.set_hl(0xABCD);
+
+    assert_eq!(r.h, 0xAB, "Set H");
+    assert_eq!(r.l, 0xCD, "Set L");
   }
 }
