@@ -11,5 +11,3 @@ workflows:
   test:
     jobs:
       - test
-This example shows a parallel job workflow where the build and test jobs run in parallel to save time. Refer to the Workflows document for complete details about orchestrating job runs with parallel, sequential, and manual approval workflows.
-
