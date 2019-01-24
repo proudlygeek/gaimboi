@@ -1,0 +1,7 @@
+[package]
+name = "gaimboi"
+version = "0.1.0"
+authors = ["Gianluca Bargelli <g.bargelli@gmail.com>"]
+edition = "2018"
+
+[dependencies]
