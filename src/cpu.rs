@@ -6,6 +6,20 @@ pub struct CPU {
   sp: u16, // Stack Pointer -> 2 bytes
 }
 
+enum Instruction {
+  ADD(ArithmeticTarget),
+}
+
+enum ArithmeticTarget {
+  A,
+  B,
+  C,
+  D,
+  E,
+  H,
+  L,
+}
+
 impl CPU {
   pub fn new() -> CPU {
     CPU {
@@ -15,8 +29,26 @@ impl CPU {
     }
   }
 
-  pub fn execute_cycle(&mut self) {
-    println!("executing instruction");
+  pub fn execute_cycle(&mut self, instruction: Instruction) {
+    match instruction {
+      Instruction::ADD(target) => match target {
+        ArithmeticTarget::C => {
+          let value = self.registers.c;
+          let new_value = self.add(value);
+          self.registers.a = new_value;
+        }
+        _ => panic!("not handled"),
+      },
+      _ => panic!("not handled"),
+    }
+  }
+
+  fn add(&mut self, value: u8) -> u8 {
+    let (new_value, did_overflow) = self.registers.a.overflowing_add(value);
+    self.registers.f.zero = new_value == 0;
+    self.registers.f.subtract = false;
+
+    new_value
   }
 }
 

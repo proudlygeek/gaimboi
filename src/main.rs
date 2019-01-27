@@ -7,6 +7,6 @@ fn main() {
     let mut cpu = CPU::new();
 
     loop {
-        cpu.execute_cycle();
+        // cpu.execute_cycle();
     }
 }

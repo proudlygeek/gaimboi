@@ -1,13 +1,13 @@
 // 8 registers, 8 bit each (A, B, C, D, E, H, L)
 pub struct Registers {
-  a: u8,
-  f: u8,
-  b: u8,
-  c: u8,
-  d: u8,
-  e: u8,
-  h: u8,
-  l: u8,
+  pub a: u8,
+  pub f: FlagsRegister,
+  pub b: u8,
+  pub c: u8,
+  pub d: u8,
+  pub e: u8,
+  pub h: u8,
+  pub l: u8,
 }
 
 const ZERO_FLAG_BYTE_POSITION: u8 = 7;
@@ -15,17 +15,17 @@ const SUBTRACT_FLAG_BYTE_POSITION: u8 = 6;
 const HALF_CARRY_FLAG_BYTE_POSITION: u8 = 5;
 const CARRY_FLAG_BYTE_POSITION: u8 = 4;
 
-struct FlagsRegister {
-  zero: bool,
-  substract: bool,
-  half_carry: bool,
-  carry: bool,
+pub struct FlagsRegister {
+  pub zero: bool,
+  pub subtract: bool,
+  pub half_carry: bool,
+  pub carry: bool,
 }
 
-impl std::convert::From<FlagsRegister> for u8 {
-  fn from(flag: FlagsRegister) -> u8 {
+impl std::convert::From<&FlagsRegister> for u8 {
+  fn from(flag: &FlagsRegister) -> u8 {
     ((flag.zero as u8) << ZERO_FLAG_BYTE_POSITION)
-      | ((flag.substract as u8) << SUBTRACT_FLAG_BYTE_POSITION)
+      | ((flag.subtract as u8) << SUBTRACT_FLAG_BYTE_POSITION)
       | ((flag.half_carry as u8) << HALF_CARRY_FLAG_BYTE_POSITION)
       | ((flag.carry as u8) << CARRY_FLAG_BYTE_POSITION)
   }
@@ -34,13 +34,13 @@ impl std::convert::From<FlagsRegister> for u8 {
 impl std::convert::From<u8> for FlagsRegister {
   fn from(byte: u8) -> FlagsRegister {
     let zero = byte >> ZERO_FLAG_BYTE_POSITION & 0b1 != 0;
-    let substract = byte >> SUBTRACT_FLAG_BYTE_POSITION & 0b1 != 0;
+    let subtract = byte >> SUBTRACT_FLAG_BYTE_POSITION & 0b1 != 0;
     let half_carry = byte >> HALF_CARRY_FLAG_BYTE_POSITION & 0b1 != 0;
     let carry = byte >> CARRY_FLAG_BYTE_POSITION & 0b1 != 0;
 
     FlagsRegister {
       zero,
-      substract,
+      subtract,
       half_carry,
       carry,
     }
@@ -51,7 +51,7 @@ impl Registers {
   pub fn new() -> Registers {
     Registers {
       a: 0x0,
-      f: 0x0,
+      f: FlagsRegister::from(0x0),
       b: 0x0,
       c: 0x0,
       d: 0x0,
@@ -62,7 +62,8 @@ impl Registers {
   }
 
   fn af(&mut self) -> u16 {
-    ((self.a as u16) << 8) | (self.f as u16 & 0xF0)
+    let c = &self.f;
+    ((self.a as u16) << 8) | (u8::from(c) as u16 & 0xF0)
   }
 
   fn bc(&mut self) -> u16 {
@@ -79,7 +80,7 @@ impl Registers {
 
   fn set_af(&mut self, value: u16) {
     self.a = ((value & 0xFF00) >> 8) as u8;
-    self.f = (value & 0x00F0) as u8;
+    self.f = FlagsRegister::from((value & 0x00F0) as u8);
   }
 
   fn set_bc(&mut self, value: u16) {
@@ -107,7 +108,10 @@ mod tests {
     let r = Registers::new();
 
     assert_eq!(r.a, 0x00, "Initialize A");
-    assert_eq!(r.f, 0x00, "Initialize F");
+    assert_eq!(r.f.zero, false, "Initialize F | zero");
+    assert_eq!(r.f.subtract, false, "Initialize F | subtract");
+    assert_eq!(r.f.half_carry, false, "Initialize F | half carry");
+    assert_eq!(r.f.carry, false, "Initialize F | carry");
     assert_eq!(r.b, 0x00, "Initialize B");
     assert_eq!(r.c, 0x00, "Initialize C");
     assert_eq!(r.d, 0x00, "Initialize D");
@@ -120,7 +124,7 @@ mod tests {
   fn af() {
     let mut r = Registers::new();
     r.a = 0xAB;
-    r.f = 0xCF;
+    r.f = FlagsRegister::from(0xCF);
 
     assert_eq!(r.af(), 0xABC0, "Get AF , last 4 bits are zeroed");
   }
@@ -159,7 +163,7 @@ mod tests {
     r.set_af(0xABCD);
 
     assert_eq!(r.a, 0xAB, "Set A");
-    assert_eq!(r.f, 0xC0, "Set F, last 4 bits are zeroed");
+    assert_eq!(r.f.zero, true, "Set F, last 4 bits are zeroed");
   }
 
   #[test]
@@ -199,7 +203,7 @@ mod tests {
 
     assert_eq!(flags.zero, true, "From byte to flag registers | zero");
     assert_eq!(
-      flags.substract, true,
+      flags.subtract, true,
       "From byte to flag registers | subtract"
     );
     assert_eq!(
@@ -213,12 +217,12 @@ mod tests {
   fn from_flags_to_byte() {
     let flags = FlagsRegister {
       zero: true,
-      substract: true,
+      subtract: true,
       half_carry: false,
       carry: false,
     };
 
-    let byte = u8::from(flags);
+    let byte = u8::from(&flags);
 
     assert_eq!(0b11000000, byte, "From flag registers to byte");
   }
