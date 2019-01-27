@@ -10,6 +10,43 @@ pub struct Registers {
   l: u8,
 }
 
+const ZERO_FLAG_BYTE_POSITION: u8 = 7;
+const SUBTRACT_FLAG_BYTE_POSITION: u8 = 6;
+const HALF_CARRY_FLAG_BYTE_POSITION: u8 = 5;
+const CARRY_FLAG_BYTE_POSITION: u8 = 4;
+
+struct FlagsRegister {
+  zero: bool,
+  substract: bool,
+  half_carry: bool,
+  carry: bool,
+}
+
+impl std::convert::From<FlagsRegister> for u8 {
+  fn from(flag: FlagsRegister) -> u8 {
+    ((flag.zero as u8) << ZERO_FLAG_BYTE_POSITION)
+      | ((flag.substract as u8) << SUBTRACT_FLAG_BYTE_POSITION)
+      | ((flag.half_carry as u8) << HALF_CARRY_FLAG_BYTE_POSITION)
+      | ((flag.carry as u8) << CARRY_FLAG_BYTE_POSITION)
+  }
+}
+
+impl std::convert::From<u8> for FlagsRegister {
+  fn from(byte: u8) -> FlagsRegister {
+    let zero = byte >> ZERO_FLAG_BYTE_POSITION & 0b1 != 0;
+    let substract = byte >> SUBTRACT_FLAG_BYTE_POSITION & 0b1 != 0;
+    let half_carry = byte >> HALF_CARRY_FLAG_BYTE_POSITION & 0b1 != 0;
+    let carry = byte >> CARRY_FLAG_BYTE_POSITION & 0b1 != 0;
+
+    FlagsRegister {
+      zero,
+      substract,
+      half_carry,
+      carry,
+    }
+  }
+}
+
 impl Registers {
   pub fn new() -> Registers {
     Registers {
@@ -153,5 +190,36 @@ mod tests {
 
     assert_eq!(r.h, 0xAB, "Set H");
     assert_eq!(r.l, 0xCD, "Set L");
+  }
+
+  #[test]
+  fn from_byte_to_flags() {
+    let byte = 0b11001111;
+    let flags = FlagsRegister::from(byte);
+
+    assert_eq!(flags.zero, true, "From byte to flag registers | zero");
+    assert_eq!(
+      flags.substract, true,
+      "From byte to flag registers | subtract"
+    );
+    assert_eq!(
+      flags.half_carry, false,
+      "From byte to flag registers | half carry"
+    );
+    assert_eq!(flags.carry, false, "From byte to flag registers | carry");
+  }
+
+  #[test]
+  fn from_flags_to_byte() {
+    let flags = FlagsRegister {
+      zero: true,
+      substract: true,
+      half_carry: false,
+      carry: false,
+    };
+
+    let byte = u8::from(flags);
+
+    assert_eq!(0b11000000, byte, "From flag registers to byte");
   }
 }
