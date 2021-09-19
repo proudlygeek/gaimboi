@@ -10,7 +10,7 @@ pub enum Instruction {
   ADD(ArithmeticTarget),
 }
 
-enum ArithmeticTarget {
+pub enum ArithmeticTarget {
   A,
   B,
   C,
