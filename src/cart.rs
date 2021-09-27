@@ -155,6 +155,10 @@ impl Cart {
             section => panic!("header section not implemented: {:?}", section),
         }
     }
+
+    pub fn read_cart(self: &Cart, address: u8) -> u8 {
+        self.content[address]
+    }
 }
 
 #[cfg(test)]

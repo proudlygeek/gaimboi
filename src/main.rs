@@ -26,7 +26,7 @@ fn main() {
         cart.checksum() as u16 == cart.calculate_checksum()
     );
 
-    // loop {
-    //     // cpu.execute_cycle();
-    // }
+    loop {
+        cpu.execute_cycle();
+    }
 }

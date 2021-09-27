@@ -6,20 +6,6 @@ pub struct CPU {
     sp: u16, // Stack Pointer -> 2 bytes
 }
 
-pub enum Instruction {
-    ADD(ArithmeticTarget),
-}
-
-pub enum ArithmeticTarget {
-    A,
-    B,
-    C,
-    D,
-    E,
-    H,
-    L,
-}
-
 impl CPU {
     pub fn new() -> CPU {
         CPU {
@@ -29,16 +15,12 @@ impl CPU {
         }
     }
 
-    pub fn execute_cycle(&mut self, instruction: Instruction) {
-        match instruction {
-            Instruction::ADD(target) => match target {
-                ArithmeticTarget::C => {
-                    let value = self.registers.c;
-                    let new_value = self.add(value);
-                    self.registers.a = new_value;
-                }
-                _ => panic!("not handled"),
-            },
+    pub fn execute_cycle(&mut self, opcode: u8) {
+        match opcode {
+            0x80 => self.registers.a = self.add(self.registers.b),
+            0x81 => self.registers.a = self.add(self.registers.c),
+            0x82 => self.registers.a = self.add(self.registers.d),
+            0x83 => self.registers.a = self.add(self.registers.e),
             _ => panic!("not handled"),
         }
     }
@@ -68,12 +50,45 @@ mod tests {
     }
 
     #[test]
-    fn match_instruction_add_c() {
+    fn add_a_b() {
+        let mut cpu = CPU::new();
+        cpu.registers.a = 0x09;
+        cpu.registers.b = 0x01;
+
+        cpu.execute_cycle(0x80);
+
+        assert_eq!(cpu.registers.a, 0xA, "Result in register A");
+    }
+
+    #[test]
+    fn add_a_c() {
         let mut cpu = CPU::new();
         cpu.registers.a = 0x09;
         cpu.registers.c = 0x01;
 
-        cpu.execute_cycle(Instruction::ADD(ArithmeticTarget::C));
+        cpu.execute_cycle(0x81);
+
+        assert_eq!(cpu.registers.a, 0xA, "Result in register A");
+    }
+
+    #[test]
+    fn add_a_d() {
+        let mut cpu = CPU::new();
+        cpu.registers.a = 0x09;
+        cpu.registers.d = 0x01;
+
+        cpu.execute_cycle(0x82);
+
+        assert_eq!(cpu.registers.a, 0xA, "Result in register A");
+    }
+
+    #[test]
+    fn add_a_e() {
+        let mut cpu = CPU::new();
+        cpu.registers.a = 0x09;
+        cpu.registers.e = 0x01;
+
+        cpu.execute_cycle(0x83);
 
         assert_eq!(cpu.registers.a, 0xA, "Result in register A");
     }
