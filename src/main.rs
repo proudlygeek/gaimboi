@@ -27,6 +27,6 @@ fn main() {
     );
 
     loop {
-        cpu.execute_cycle();
+        // cpu.execute_cycle();
     }
 }

@@ -139,6 +139,10 @@ impl Cart {
         self.cartridge_type = self.read_section(HeaderSection::CartridgeType)[0];
         self.lic_code = self.read_section(HeaderSection::LicCode)[0];
     }
+    
+    pub fn read_cart(self: &Cart, address: u16) -> &u8 {
+        &self.content[address as usize]
+    }
 
     pub fn read_section(self: &Cart, section: HeaderSection) -> &[u8] {
         match section {
@@ -154,10 +158,6 @@ impl Cart {
             HeaderSection::Checksum => &self.content[0x14D..=0x14D],
             section => panic!("header section not implemented: {:?}", section),
         }
-    }
-
-    pub fn read_cart(self: &Cart, address: u8) -> u8 {
-        self.content[address]
     }
 }
 
@@ -175,6 +175,17 @@ mod tests {
         assert_eq!(cart.ram_size, 0x00, "Initialize RAM size");
         assert_eq!(cart.cartridge_type, 0x00, "Initialize cartridge type");
         assert_eq!(cart.lic_code, 0x00, "Initialize license code");
+    }
+
+    #[test]
+    fn read_cart() {
+        let mut cart = Cart::new();
+
+        cart.read_file("test_roms/cpu_instrs.gb");
+
+        let value = *cart.read_cart(0x104);
+
+        assert_eq!(value, 0xCE);
     }
 
     #[test]
